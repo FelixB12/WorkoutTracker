@@ -5,50 +5,10 @@ import {ScrollView, StyleSheet, View} from 'react-native';
 import {times} from 'lodash';
 import RoutineDisplay from './RoutineCreate';
 
-const createMock = (r, s, re, w) => {
-  return {
-    routine: r,
-    sets: s,
-    reps: re,
-    weight: w,
-  };
-};
-
-const mockData = {
-  1: [
-    {
-      routine: 'Curl',
-      sets: 4,
-      reps: 12,
-      weight: 10,
-    },
-    {
-      routine: 'Pull Up',
-      sets: 4,
-      reps: 12,
-      weight: 10,
-    },
-  ],
-  2: [
-    {
-      routine: 'PullDown',
-      sets: 2,
-      reps: 10,
-      weight: 10,
-    },
-  ],
-  3: [createMock('Test 1', 2, 20, 15)],
-  4: [
-    createMock('Test 1', 2, 20, 15),
-    createMock('Test 3', 2, 20, 15),
-    createMock('Test 2', 2, 20, 15),
-  ],
-};
-
 const CreateWorkout = ({navigation}) => {
   const [planName, setPlanName] = useState();
   const [planDayRange, setPlanDayRange] = useState();
-  const [planDaysWorkoutPlan, setPlanDaysWorkoutPlan] = useState(mockData);
+  const [planDaysWorkoutPlan, setPlanDaysWorkoutPlan] = useState({});
   const [openAddRoutineOverLay, setOpenAddRoutineOverLay] = useState({
     open: false,
     day: undefined,
@@ -70,13 +30,35 @@ const CreateWorkout = ({navigation}) => {
     setOpenAddRoutineOverLay({open: false, day: undefined});
   };
 
+  const onRoutineAdd = (exercise, sets, reps, weight, day) => {
+    const dayt = day;
+    setPlanDaysWorkoutPlan(prev => {
+      const hasOwn = prev.hasOwnProperty(dayt);
+      if (hasOwn) {
+        return {
+          ...prev,
+          [dayt]: [
+            ...prev[dayt],
+            {routine: exercise, sets: sets, reps: reps, weight: weight},
+          ],
+        };
+      } else {
+        return {
+          ...prev,
+          [dayt]: [{routine: exercise, sets: sets, reps: reps, weight: weight}],
+        };
+      }
+    });
+    handleAddroutineFinish();
+  };
   return (
     <ScrollView>
       <View style={{flex: 1}}>
         <RoutineDisplay
           open={openAddRoutineOverLay.open}
-          handleSubmit={handleAddroutineFinish}
+          handleSubmit={onRoutineAdd}
           handleCancel={handleAddroutineFinish} // TODO Add cancel handler
+          day={openAddRoutineOverLay.day}
         />
         <Input placeholder="Workout Plan Name" />
         <Input
@@ -102,7 +84,7 @@ const CreateWorkout = ({navigation}) => {
                     <Text style={styles.flexStyleValues}>Weight</Text>
                   </View>
                 </View>
-                {planDaysWorkoutPlan[i + 1] &&
+                {planDaysWorkoutPlan.hasOwnProperty(i + 1) &&
                   planDaysWorkoutPlan[i + 1].map(obj => {
                     return (
                       <View style={styles.container}>
@@ -122,7 +104,7 @@ const CreateWorkout = ({navigation}) => {
                       </View>
                     );
                   })}
-                <Button onPress={handleAddRoutinePress}>
+                <Button onPress={() => handleAddRoutinePress(i + 1)}>
                   <Text>+ Add Day {i + 1} Routine</Text>
                 </Button>
               </Card>

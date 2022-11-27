@@ -1,11 +1,16 @@
 import {Card, Text} from '@rneui/base';
 import {Button, Icon, Input} from '@rneui/themed';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import {times} from 'lodash';
 import RoutineDisplay from './RoutineCreate';
+import {
+  getDbConnection,
+  saveWorkoutPlan,
+  saveWorkoutRoutine,
+} from '../../datastore/db-service';
 
-const CreateWorkout = ({navigation}) => {
+const CreateWorkout = props => {
   const [planName, setPlanName] = useState();
   const [planDayRange, setPlanDayRange] = useState();
   const [planDaysWorkoutPlan, setPlanDaysWorkoutPlan] = useState({});
@@ -13,6 +18,69 @@ const CreateWorkout = ({navigation}) => {
     open: false,
     day: undefined,
   });
+
+  React.useEffect(() => {
+    props.navigation.setOptions({
+      headerRight: () => (
+        <Button
+          title="Cancel"
+          onPress={() => props.navigation.navigate('Home')}
+        />
+      ),
+    });
+    props.navigation.setOptions({
+      headerLeft: () => (
+        <Button
+          title="Save"
+          onPress={() => {
+            onSave();
+            props.navigation.goBack();
+            props.route.params.onSave();
+          }}
+        />
+      ),
+    });
+  }, [
+    props,
+    onSave,
+    buildRoutins,
+    planDaysWorkoutPlan,
+    planDayRange,
+    planName,
+  ]);
+
+  const onSave = useCallback(async () => {
+    const db = await getDbConnection();
+
+    const savedId = await saveWorkoutPlan(db, {
+      planName: planName,
+      planDays: planDayRange,
+    });
+
+    const routines = buildRoutins(savedId);
+    await saveWorkoutRoutine(db, routines);
+  }, [buildRoutins, planDayRange, planName]);
+
+  const buildRoutins = useCallback(
+    id => {
+      const routines = [];
+      Object.keys(planDaysWorkoutPlan).forEach(key => {
+        planDaysWorkoutPlan[key].forEach(obj =>
+          routines.push({
+            planId: id,
+            exerciseName: obj.routine,
+            sets: obj.sets,
+            reps: obj.reps,
+            weight: obj.weight,
+            day: key,
+          }),
+        );
+      });
+
+      return routines;
+    },
+    [planDaysWorkoutPlan],
+  );
 
   const onDayPerWeekValueChange = text => {
     const num = text.replace(/[^0-9]/g, '');
@@ -60,7 +128,10 @@ const CreateWorkout = ({navigation}) => {
           handleCancel={handleAddroutineFinish} // TODO Add cancel handler
           day={openAddRoutineOverLay.day}
         />
-        <Input placeholder="Workout Plan Name" />
+        <Input
+          placeholder="Workout Plan Name"
+          onChangeText={val => setPlanName(val)}
+        />
         <Input
           keyboardType="numeric"
           onChangeText={onDayPerWeekValueChange}

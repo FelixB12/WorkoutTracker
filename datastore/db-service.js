@@ -7,6 +7,9 @@ import {
 // Add Table Names bellow
 export const table_WorkoutPlan = 'workoutPlan';
 export const table_WorkoutRoutine = 'workoutRoutine';
+export const table_WorkoutProgram = 'workoutProgram';
+export const table_WorkoutProgramRoutineActivity =
+  'workoutProgramRoutineActivity';
 // End Table Name
 
 enablePromise(true);
@@ -25,12 +28,42 @@ export const createWorkoutPlanTable = async (db: SQLiteDatabase) => {
 
 export const createWorkoutRoutineTable = async (db: SQLiteDatabase) => {
   const query = `CREATE TABLE IF NOT EXISTS ${table_WorkoutRoutine}(
-    id INTEGER NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    planId INTEGER NOT NULL,
     exerciseName TEXT NOT NULL,
     sets INTEGER NOT NULL,
     reps INTEGER NOT NULL,
     weight NUMERIC NOT NULL,
-    day INTEGER NOT NULL);`;
+    day INTEGER NOT NULL);`; // TODO Add Routine Id
+  await db.executeSql(query);
+};
+
+export const createWorkoutProgramTable = async (db: SQLiteDatabase) => {
+  const query = `CREATE TABLE IF NOT EXISTS ${table_WorkoutProgram}(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    workoutPlanId INTEGER NOT NULL,
+    isActive INTEGER NOT NULL,
+    isCompleted INTEGER NOT NULL,
+    dateStarted TEXT NOT NULL,
+    dateFinished TEXT
+  );`;
+
+  await db.executeSql(query);
+};
+
+export const createWorkoutProgramRoutineActivityTable = async (
+  db: SQLiteDatabase,
+) => {
+  const query = `CREATE TABLE IF NOT EXISTS ${table_WorkoutProgramRoutineActivity}(
+    programId INTEGER NOT NULL,
+    day INTEGER NOT NULL,
+    exerciseName TEXT NOT NULL,
+    date TEXT NOT NULL,
+    set INTEGER NOT NULL,
+    weight NUMERIC NOT NULL,
+    routineId INTEGER NOT NULL
+  );`;
+
   await db.executeSql(query);
 };
 
@@ -101,7 +134,7 @@ export const saveWorkoutPlan = async (db: SQLiteDatabase, data) => {
 
 export const saveWorkoutRoutine = async (db: SQLiteDatabase, data: []) => {
   const insertQuery =
-    `INSERT INTO ${table_WorkoutRoutine} (id, exerciseName, sets, reps, weight, day) values` +
+    `INSERT INTO ${table_WorkoutRoutine} (planId, exerciseName, sets, reps, weight, day) values` +
     data
       .map(
         routine =>

@@ -9,9 +9,10 @@ import Home from './components/Home';
 import CreateWorkout from './components/workout/CreateWorkout';
 import {
   createWorkoutPlanTable,
+  createWorkoutProgramRoutineActivityTable,
+  createWorkoutProgramTable,
   createWorkoutRoutineTable,
   getDbConnection,
-  getWorkoutRoutine,
 } from './datastore/db-service';
 
 const Stack = createNativeStackNavigator();
@@ -28,6 +29,8 @@ const App = () => {
     const db = await getDbConnection();
     await createWorkoutPlanTable(db);
     await createWorkoutRoutineTable(db);
+    await createWorkoutProgramTable(db);
+    await createWorkoutProgramRoutineActivityTable(db);
 
     // await saveWorkoutPlan(db, mockWorkoutePlan);
     // await saveWorkoutRoutine(db, mockWorkoutRoutine);

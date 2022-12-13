@@ -40,14 +40,7 @@ const CreateWorkout = props => {
         />
       ),
     });
-  }, [
-    props,
-    onSave,
-    buildRoutins,
-    planDaysWorkoutPlan,
-    planDayRange,
-    planName,
-  ]);
+  }, [props, onSave, planDaysWorkoutPlan, planDayRange, planName]);
 
   const onSave = useCallback(async () => {
     const db = await getDbConnection();
@@ -56,31 +49,28 @@ const CreateWorkout = props => {
       planName: planName,
       planDays: planDayRange,
     });
+    const routines = buildRoutins(savedId, planDaysWorkoutPlan);
 
-    const routines = buildRoutins(savedId);
     await saveWorkoutRoutine(db, routines);
-  }, [buildRoutins, planDayRange, planName]);
+  }, [planDaysWorkoutPlan, planDayRange, planName]);
 
-  const buildRoutins = useCallback(
-    id => {
-      const routines = [];
-      Object.keys(planDaysWorkoutPlan).forEach(key => {
-        planDaysWorkoutPlan[key].forEach(obj =>
-          routines.push({
-            planId: id,
-            exerciseName: obj.routine,
-            sets: obj.sets,
-            reps: obj.reps,
-            weight: obj.weight,
-            day: key,
-          }),
-        );
-      });
+  const buildRoutins = (id, plan) => {
+    const routines = [];
+    Object.keys(plan).forEach(key => {
+      plan[key].forEach(obj =>
+        routines.push({
+          planId: id,
+          exerciseName: obj.routine,
+          sets: obj.sets,
+          reps: obj.reps,
+          weight: obj.weight,
+          day: key,
+        }),
+      );
+    });
 
-      return routines;
-    },
-    [planDaysWorkoutPlan],
-  );
+    return routines;
+  };
 
   const onDayPerWeekValueChange = text => {
     const num = text.replace(/[^0-9]/g, '');

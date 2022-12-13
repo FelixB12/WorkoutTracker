@@ -6,13 +6,17 @@ import {StatusBar, useColorScheme, SafeAreaView} from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import Home from './components/Home';
+import ContinueWorkout from './components/workout/ContinueWorkout';
 import CreateWorkout from './components/workout/CreateWorkout';
+import StartNewWorkout from './components/workout/StartNewWorkout';
 import {
   createWorkoutPlanTable,
   createWorkoutProgramRoutineActivityTable,
   createWorkoutProgramTable,
   createWorkoutRoutineTable,
+  createWorkoutScheduleTable,
   getDbConnection,
+  getWorkoutRoutine,
 } from './datastore/db-service';
 
 const Stack = createNativeStackNavigator();
@@ -30,17 +34,11 @@ const App = () => {
     await createWorkoutPlanTable(db);
     await createWorkoutRoutineTable(db);
     await createWorkoutProgramTable(db);
+    await createWorkoutScheduleTable(db);
     await createWorkoutProgramRoutineActivityTable(db);
 
-    // await saveWorkoutPlan(db, mockWorkoutePlan);
-    // await saveWorkoutRoutine(db, mockWorkoutRoutine);
-
-    // const routine = await getRoutinesForPlanId(db, 1);
-
-    // console.log('R', routine);
-    //const loadedData = await getWorkoutRoutine(db);
-    // const routinePlan = await getWorkoutPlan(db);
-    // console.log('Loaded Data', loadedData, routinePlan);
+    const re = await getWorkoutRoutine(db);
+    console.log('ROUTINES', re);
   }, []);
 
   React.useEffect(() => {
@@ -65,6 +63,8 @@ const App = () => {
             headerLeft: () => <Button title="Save" />,
           }}
         />
+        <Stack.Screen name="Start New Workout" component={StartNewWorkout} />
+        <Stack.Screen name="Continue Workout" component={ContinueWorkout} />
       </Stack.Navigator>
       {/* </SafeAreaView> */}
       {/* </SafeAreaView> */}
